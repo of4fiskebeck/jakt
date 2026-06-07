@@ -245,3 +245,18 @@ textarea { resize: vertical; min-height: 110px; }
   .place-search { grid-template-columns: 1fr; }
   .leaflet-map { height: 340px; }
 }
+
+
+.map-version {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin: 0.35rem 0 0.5rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(225, 177, 94, 0.14);
+  border: 1px solid rgba(225, 177, 94, 0.35);
+  color: #e1b15e;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
