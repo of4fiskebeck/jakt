@@ -181,7 +181,7 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
   }
 
   async function searchPlace(event) {
-    event.preventDefault();
+    if (event?.preventDefault) event.preventDefault();
     const text = searchText.trim();
     if (!text) return;
 
@@ -245,16 +245,26 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
   return (
     <section className="card map-card">
       <h3>Kart og jaktsted</h3>
-      <div className="map-version">Kartlag: Kartverket topografisk · versjon 3</div>
+      <div className="map-version">Kartlag: Kartverket topografisk · versjon 4</div>
       <p className="muted-text">Søk etter sted, bruk egen posisjon eller klikk i kartet for å sette nøyaktig jaktsted.</p>
 
-      <form className="place-search" onSubmit={searchPlace}>
+      <div className="place-search">
         <label>
           Søk etter sted
-          <input value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder="F.eks. Rendalen, Femundsmarka eller Trysil" />
+          <input
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                searchPlace();
+              }
+            }}
+            placeholder="F.eks. Rendalen, Femundsmarka eller Trysil"
+          />
         </label>
-        <button type="submit" disabled={searching}>{searching ? 'Søker...' : 'Søk sted'}</button>
-      </form>
+        <button type="button" disabled={searching} onClick={() => searchPlace()}>{searching ? 'Søker...' : 'Søk sted'}</button>
+      </div>
 
       {searchError && <div className="notice error">{searchError}</div>}
       {results.length > 0 && (
