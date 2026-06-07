@@ -260,3 +260,29 @@ textarea { resize: vertical; min-height: 110px; }
   font-weight: 900;
   letter-spacing: 0.02em;
 }
+
+
+/* Leaflet layer chooser fix v4: make Kartverket layer names readable inside the pale Leaflet control. */
+.leaflet-control-layers {
+  background: rgba(248, 242, 223, 0.96) !important;
+  color: #0d160e !important;
+  border: 2px solid rgba(13, 22, 14, 0.24) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.28) !important;
+}
+.leaflet-control-layers label,
+.leaflet-control-layers span,
+.leaflet-control-layers-base label {
+  color: #0d160e !important;
+  font-weight: 800 !important;
+  opacity: 1 !important;
+}
+.leaflet-control-layers input {
+  accent-color: #1d6f42;
+}
+.leaflet-control-layers-expanded {
+  padding: 12px 14px !important;
+}
+.leaflet-control-layers-separator {
+  border-top-color: rgba(13, 22, 14, 0.22) !important;
+}
