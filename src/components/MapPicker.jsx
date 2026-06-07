@@ -2,8 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 const NORWAY_CENTER = [63.4, 10.4];
 const DEFAULT_ZOOM = 5;
-const KARTVERKET_TOPO = 'https://opencache.statkart.no/gatekeeper/gk/gk.open_gmaps?layers=topo4&zoom={z}&x={x}&y={y}';
-const KARTVERKET_GREY = 'https://opencache.statkart.no/gatekeeper/gk/gk.open_gmaps?layers=topo4graatone&zoom={z}&x={x}&y={y}';
+const KARTVERKET_TOPO = 'https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator/{z}/{y}/{x}.png';
+const KARTVERKET_GREY = 'https://cache.kartverket.no/v1/wmts/1.0.0/topograatone/default/webmercator/{z}/{y}/{x}.png';
+const KARTVERKET_RASTER = 'https://cache.kartverket.no/v1/wmts/1.0.0/toporaster/default/webmercator/{z}/{y}/{x}.png';
 const OSM = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 function toCoordinate(value) {
@@ -107,15 +108,21 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
           maxZoom: 18,
           attribution: '&copy; Kartverket'
         });
+        const raster = L.tileLayer(KARTVERKET_RASTER, {
+          maxZoom: 18,
+          attribution: '&copy; Kartverket'
+        });
         const osm = L.tileLayer(OSM, {
           maxZoom: 19,
           attribution: '&copy; OpenStreetMap contributors'
         });
 
+        // Kartverket endret kartcache i 2025. Bruk cache.kartverket.no, ikke det gamle opencache.statkart.no.
         topo.addTo(map);
         L.control.layers({
           'Topografisk kart': topo,
           'Topografisk gråtone': grey,
+          'Turkart / raster': raster,
           'OpenStreetMap': osm
         }).addTo(map);
 

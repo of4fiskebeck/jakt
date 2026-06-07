@@ -143,3 +143,14 @@ Dette er en første MVP, laget for videreutvikling i GitHub.
 ## Kart og stedssøk
 
 Kartmodulen bruker Leaflet i nettleseren, Kartverket sitt topografiske kartlag som hovedkart, gråtone/topo som alternativ og OpenStreetMap som fallback. Stedssøk forsøker først Kartverket/GeoNorge stedsnavnsøk og faller tilbake til OpenStreetMap Nominatim dersom det ikke kommer treff.
+
+
+## Kartmodul – viktig
+
+Kartmodulen bruker nå Kartverkets nye cache-URL-er:
+
+- `https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator/{z}/{y}/{x}.png`
+- `https://cache.kartverket.no/v1/wmts/1.0.0/topograatone/default/webmercator/{z}/{y}/{x}.png`
+- `https://cache.kartverket.no/v1/wmts/1.0.0/toporaster/default/webmercator/{z}/{y}/{x}.png`
+
+Det gamle `opencache.statkart.no`-endepunktet er ikke lenger brukt.
