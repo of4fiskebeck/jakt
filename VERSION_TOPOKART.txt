@@ -1,0 +1,2 @@
+topokart-root-fix-2026-06-07
+MapPicker should show Søk etter sted and Kartverket topografisk layer.
