@@ -439,3 +439,133 @@ textarea { resize: vertical; min-height: 110px; }
   .search-result-side { justify-items: start; text-align: left; min-width: 0; margin-right: 0; }
   .leaflet-map { height: 340px; }
 }
+
+/* Kart og søk v6: renere og penere søkeresultater. Bruker egne klassenavn for å unngå konflikt med gamle søkestiler. */
+.map-search-v6 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 132px;
+  gap: 0.9rem;
+  align-items: end;
+  margin: 1rem 0 0.75rem;
+}
+.map-search-v6 label { margin: 0; }
+.map-search-button-v6 {
+  min-height: 58px !important;
+  padding: 0 1.1rem !important;
+  border-radius: 999px !important;
+  white-space: nowrap;
+}
+.map-results-v6 {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.65rem 0 1.15rem;
+  padding: 0.65rem;
+  border-radius: 24px;
+  background: rgba(5, 12, 8, 0.36);
+  border: 1px solid rgba(226, 210, 166, 0.12);
+}
+.map-results-heading-v6 {
+  padding: 0 0.2rem 0.2rem;
+  color: #e1b15e;
+  font-size: 0.75rem;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.map-result-v6 {
+  display: grid !important;
+  grid-template-columns: 38px minmax(0, 1fr) auto !important;
+  gap: 0.8rem !important;
+  align-items: center !important;
+  width: 100% !important;
+  text-align: left !important;
+  padding: 0.72rem 0.85rem !important;
+  min-height: 70px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(226, 210, 166, 0.16) !important;
+  background: rgba(234, 226, 201, 0.075) !important;
+  color: #fff7e3 !important;
+  box-shadow: none !important;
+}
+.map-result-v6:hover {
+  transform: translateY(-1px);
+  border-color: rgba(225, 177, 94, 0.48) !important;
+  background: rgba(225, 177, 94, 0.13) !important;
+}
+.map-result-pin-v6 {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  background: rgba(225, 177, 94, 0.15);
+  color: #e1b15e;
+  font-weight: 950;
+  font-size: 1rem;
+}
+.map-result-text-v6 {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+.map-result-text-v6 strong {
+  display: block;
+  color: #fff7e3;
+  font-size: 1rem;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.map-result-text-v6 small {
+  display: block;
+  color: #d6ccb0;
+  font-size: 0.82rem;
+  font-weight: 750;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.map-result-action-v6 {
+  display: inline-grid;
+  place-items: center;
+  min-width: 62px;
+  height: 34px;
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #c8832f, #e1b15e);
+  color: #07120c;
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+.map-result-v6.selected {
+  border-color: rgba(225, 177, 94, 0.72) !important;
+  background: rgba(225, 177, 94, 0.18) !important;
+}
+.map-version {
+  font-size: 0.82rem !important;
+  padding: 0.36rem 0.65rem !important;
+}
+.leaflet-control-layers {
+  background: rgba(248, 242, 223, 0.98) !important;
+  color: #0d160e !important;
+  border: 2px solid rgba(13, 22, 14, 0.28) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 14px 30px rgba(0,0,0,0.34) !important;
+}
+.leaflet-control-layers label,
+.leaflet-control-layers span,
+.leaflet-control-layers-base label {
+  color: #0d160e !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  opacity: 1 !important;
+}
+@media (max-width: 850px) {
+  .map-search-v6 { grid-template-columns: 1fr; }
+  .map-result-v6 { grid-template-columns: 34px minmax(0, 1fr) !important; }
+  .map-result-action-v6 { grid-column: 2; justify-self: start; margin-top: 0.25rem; }
+  .map-result-text-v6 strong,
+  .map-result-text-v6 small { white-space: normal; }
+}
