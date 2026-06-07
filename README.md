@@ -139,3 +139,7 @@ users/{userId}/rewards/{rewardId}
 Firebase-klientnøkler skal ikke hardkodes direkte i kildekoden. I denne løsningen sendes de inn som GitHub Secrets under bygging i GitHub Actions.
 
 Dette er en første MVP, laget for videreutvikling i GitHub.
+
+## Kart og stedssøk
+
+Kartmodulen bruker Leaflet i nettleseren, Kartverket sitt topografiske kartlag som hovedkart, gråtone/topo som alternativ og OpenStreetMap som fallback. Stedssøk forsøker først Kartverket/GeoNorge stedsnavnsøk og faller tilbake til OpenStreetMap Nominatim dersom det ikke kommer treff.
