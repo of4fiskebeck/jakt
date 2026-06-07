@@ -8,29 +8,125 @@ const KARTVERKET_RASTER = 'https://cache.kartverket.no/v1/wmts/1.0.0/toporaster/
 const OSM = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 function toCoordinate(value) {
-  const parsed = Number(String(value).replace(',', '.'));
+  const parsed = Number(String(value ?? '').replace(',', '.'));
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function unique(values) {
+  return [...new Set(values.map((v) => String(v).trim()).filter(Boolean))];
+}
+
+function cleanText(value) {
+  if (value == null) return '';
+  if (typeof value === 'string' || typeof value === 'number') return String(value).trim();
+  if (Array.isArray(value)) return unique(value.map(cleanText)).join(', ');
+  if (typeof value === 'object') {
+    const preferredKeys = [
+      'navnetekst',
+      'skrivemåte',
+      'skrivemate',
+      'stedsnavn',
+      'navn',
+      'kommunenavn',
+      'fylkesnavn',
+      'norsk',
+      'nor',
+      'nb',
+      'tekst',
+      'verdi',
+      'value'
+    ];
+
+    for (const key of preferredKeys) {
+      const text = cleanText(value[key]);
+      if (text) return text;
+    }
+
+    const firstReadable = Object.values(value)
+      .map(cleanText)
+      .find((text) => text && text !== '[object Object]');
+    return firstReadable || '';
+  }
+  return '';
+}
+
+function compactName(value) {
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s*,\s*/g, ', ')
+    .replace(/\s*·\s*/g, ' · ')
+    .replace(/\[object Object\]/g, '')
+    .trim();
+}
+
 function getKartverketPoint(item) {
-  const point = item.representasjonspunkt || item.posisjon || item.location || {};
+  const point = item.representasjonspunkt || item.posisjon || item.location || item.punkt || {};
   const lat = point.nord ?? point.lat ?? point.latitude ?? point.y;
   const lng = point['øst'] ?? point.ost ?? point.lon ?? point.lng ?? point.longitude ?? point.x;
   return { lat: toCoordinate(lat), lng: toCoordinate(lng) };
 }
 
-function getKartverketName(item, fallback) {
-  const nameObj = Array.isArray(item.navn)
-    ? item.navn.find((n) => n.språk === 'nor' || n.sprak === 'nor') || item.navn[0]
-    : null;
-  const name = item.stedsnavn || nameObj?.navnetekst || item.navn?.navnetekst || fallback;
-  const municipality = Array.isArray(item.kommuner)
-    ? item.kommuner.map((k) => k.kommunenavn || k.navn).filter(Boolean).join(', ')
-    : '';
-  const county = Array.isArray(item.fylker)
-    ? item.fylker.map((f) => f.fylkesnavn || f.navn).filter(Boolean).join(', ')
-    : '';
-  return [name, municipality, county].filter(Boolean).join(' · ');
+function getNameFromNameArray(item) {
+  if (!Array.isArray(item.navn)) return '';
+  const preferred = item.navn.find((n) => n.språk === 'nor' || n.sprak === 'nor' || n.språk === 'nob' || n.sprak === 'nob') || item.navn[0];
+  return cleanText(preferred);
+}
+
+function formatKartverketResult(item, fallback) {
+  const point = getKartverketPoint(item);
+  const primary = compactName(
+    cleanText(item.skrivemåte) ||
+    cleanText(item.skrivemate) ||
+    getNameFromNameArray(item) ||
+    cleanText(item.stedsnavn) ||
+    cleanText(item.navn) ||
+    fallback
+  );
+
+  const type = compactName(cleanText(item.navneobjekttype) || cleanText(item.objekttype) || cleanText(item.type));
+  const municipalities = Array.isArray(item.kommuner) ? unique(item.kommuner.map(cleanText)) : [cleanText(item.kommune)].filter(Boolean);
+  const counties = Array.isArray(item.fylker) ? unique(item.fylker.map(cleanText)) : [cleanText(item.fylke)].filter(Boolean);
+  const areaParts = unique([...municipalities, ...counties].map(compactName));
+  const subtitle = unique([type, ...areaParts].filter(Boolean)).join(' · ');
+
+  const title = primary || fallback;
+  const label = subtitle ? `${title}, ${subtitle}` : title;
+
+  return {
+    id: String(item.stedsnummer || item.skrivemåteId || item.skrivemateId || `${label}-${point.lat}-${point.lng}`),
+    title,
+    subtitle,
+    label,
+    lat: point.lat,
+    lng: point.lng,
+    source: 'Kartverket'
+  };
+}
+
+function formatOsmResult(item) {
+  const full = compactName(item.display_name);
+  const parts = full.split(',').map((part) => part.trim()).filter(Boolean);
+  const title = parts[0] || 'Ukjent sted';
+  const subtitle = parts.slice(1, 4).join(' · ');
+  return {
+    id: String(item.place_id || `${full}-${item.lat}-${item.lon}`),
+    title,
+    subtitle,
+    label: full,
+    lat: toCoordinate(item.lat),
+    lng: toCoordinate(item.lon),
+    source: 'OpenStreetMap'
+  };
+}
+
+function dedupeResults(results) {
+  const seen = new Set();
+  return results.filter((result) => {
+    const key = `${result.title.toLowerCase()}-${Number(result.lat).toFixed(4)}-${Number(result.lng).toFixed(4)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function loadLeaflet() {
@@ -74,6 +170,7 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState([]);
   const [searchError, setSearchError] = useState('');
+  const [selectedResultId, setSelectedResultId] = useState('');
 
   const latNumber = useMemo(() => toCoordinate(latitude), [latitude]);
   const lngNumber = useMemo(() => toCoordinate(longitude), [longitude]);
@@ -100,24 +197,11 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
         const zoom = latNumber && lngNumber ? 12 : DEFAULT_ZOOM;
         const map = L.map(mapEl.current, { scrollWheelZoom: true }).setView(start, zoom);
 
-        const topo = L.tileLayer(KARTVERKET_TOPO, {
-          maxZoom: 18,
-          attribution: '&copy; Kartverket'
-        });
-        const grey = L.tileLayer(KARTVERKET_GREY, {
-          maxZoom: 18,
-          attribution: '&copy; Kartverket'
-        });
-        const raster = L.tileLayer(KARTVERKET_RASTER, {
-          maxZoom: 18,
-          attribution: '&copy; Kartverket'
-        });
-        const osm = L.tileLayer(OSM, {
-          maxZoom: 19,
-          attribution: '&copy; OpenStreetMap contributors'
-        });
+        const topo = L.tileLayer(KARTVERKET_TOPO, { maxZoom: 18, attribution: '&copy; Kartverket' });
+        const grey = L.tileLayer(KARTVERKET_GREY, { maxZoom: 18, attribution: '&copy; Kartverket' });
+        const raster = L.tileLayer(KARTVERKET_RASTER, { maxZoom: 18, attribution: '&copy; Kartverket' });
+        const osm = L.tileLayer(OSM, { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' });
 
-        // Kartverket endret kartcache i 2025. Bruk cache.kartverket.no, ikke det gamle opencache.statkart.no.
         topo.on('tileerror', () => {
           if (!map.hasLayer(osm)) {
             setMapError('Kartverket-kartet kunne ikke laste akkurat nå. Appen viser OpenStreetMap som fallback.');
@@ -126,12 +210,16 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
         });
 
         topo.addTo(map);
-        L.control.layers({
-          'Topografisk kart': topo,
-          'Topografisk gråtone': grey,
-          'Turkart / raster': raster,
-          'OpenStreetMap': osm
-        }).addTo(map);
+        L.control.layers(
+          {
+            'Kartverket topografisk': topo,
+            'Kartverket gråtone': grey,
+            'Kartverket turkart': raster,
+            'OpenStreetMap': osm
+          },
+          undefined,
+          { collapsed: false, position: 'topright' }
+        ).addTo(map);
 
         map.on('click', (event) => {
           setPoint(event.latlng.lat, event.latlng.lng);
@@ -175,38 +263,33 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setPoint(position.coords.latitude, position.coords.longitude, 'Min posisjon');
+        setSelectedResultId('current-position');
+        setResults([]);
       },
       () => alert('Kunne ikke hente posisjon. Skriv inn koordinater manuelt.')
     );
   }
 
-  async function searchPlace(event) {
-    if (event?.preventDefault) event.preventDefault();
+  async function searchPlace() {
     const text = searchText.trim();
-    if (!text) return;
+    if (!text || searching) return;
 
     setSearching(true);
     setResults([]);
     setSearchError('');
+    setSelectedResultId('');
 
     try {
-      const url = `https://ws.geonorge.no/stedsnavn/v1/sted?sok=${encodeURIComponent(text)}&fuzzy=true&treffPerSide=8`;
+      const url = `https://ws.geonorge.no/stedsnavn/v1/sted?sok=${encodeURIComponent(text)}&fuzzy=true&treffPerSide=10`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Kartverket-søk feilet');
       const json = await response.json();
       const items = Array.isArray(json.navn) ? json.navn : Array.isArray(json.steder) ? json.steder : [];
-      const mapped = items
-        .map((item) => {
-          const point = getKartverketPoint(item);
-          return {
-            id: item.stedsnummer || item.skrivemåteId || `${getKartverketName(item, text)}-${point.lat}-${point.lng}`,
-            name: getKartverketName(item, text),
-            lat: point.lat,
-            lng: point.lng,
-            source: 'Kartverket'
-          };
-        })
-        .filter((item) => item.lat && item.lng);
+      const mapped = dedupeResults(
+        items
+          .map((item) => formatKartverketResult(item, text))
+          .filter((item) => item.lat && item.lng && item.title && !item.title.includes('[object Object]'))
+      ).slice(0, 5);
 
       if (mapped.length) {
         setResults(mapped);
@@ -216,17 +299,11 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
       throw new Error('Fant ingen Kartverket-treff');
     } catch (error) {
       try {
-        const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&limit=8&countrycodes=no&q=${encodeURIComponent(text)}`;
+        const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=no&q=${encodeURIComponent(text)}`;
         const response = await fetch(fallbackUrl);
         if (!response.ok) throw new Error('OpenStreetMap-søk feilet');
         const json = await response.json();
-        const mapped = json.map((item) => ({
-          id: item.place_id,
-          name: item.display_name,
-          lat: toCoordinate(item.lat),
-          lng: toCoordinate(item.lon),
-          source: 'OpenStreetMap'
-        })).filter((item) => item.lat && item.lng);
+        const mapped = json.map(formatOsmResult).filter((item) => item.lat && item.lng).slice(0, 5);
         setResults(mapped);
         if (!mapped.length) setSearchError('Fant ingen steder. Prøv et mer presist stedsnavn.');
       } catch {
@@ -238,15 +315,20 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
   }
 
   function chooseResult(result) {
-    setPoint(result.lat, result.lng, result.name);
+    setSelectedResultId(result.id);
+    setPoint(result.lat, result.lng, result.label || result.title);
     setResults([]);
   }
 
   return (
     <section className="card map-card">
-      <h3>Kart og jaktsted</h3>
-      <div className="map-version">Kartlag: Kartverket topografisk · versjon 4</div>
-      <p className="muted-text">Søk etter sted, bruk egen posisjon eller klikk i kartet for å sette nøyaktig jaktsted.</p>
+      <div className="map-card-header">
+        <div>
+          <h3>Kart og jaktsted</h3>
+          <p className="muted-text">Søk etter sted, bruk egen posisjon eller klikk i kartet for å sette nøyaktig jaktsted.</p>
+        </div>
+        <span className="map-version">Kartverket topografisk</span>
+      </div>
 
       <div className="place-search">
         <label>
@@ -260,19 +342,33 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
                 searchPlace();
               }
             }}
-            placeholder="F.eks. Rendalen, Femundsmarka eller Trysil"
+            placeholder="Søk: Karasjok, Rendalen, Femundsmarka ..."
           />
         </label>
-        <button type="button" disabled={searching} onClick={() => searchPlace()}>{searching ? 'Søker...' : 'Søk sted'}</button>
+        <button type="button" className="search-button" disabled={searching} onClick={searchPlace}>
+          {searching ? 'Søker…' : 'Søk sted'}
+        </button>
       </div>
 
       {searchError && <div className="notice error">{searchError}</div>}
       {results.length > 0 && (
-        <div className="search-results">
+        <div className="search-results" aria-label="Søkeresultater">
+          <div className="search-results-title">Velg riktig treff</div>
           {results.map((result) => (
-            <button type="button" className="search-result" key={result.id} onClick={() => chooseResult(result)}>
-              <span>{result.name}</span>
-              <small>{result.source} · {Number(result.lat).toFixed(5)}, {Number(result.lng).toFixed(5)}</small>
+            <button
+              type="button"
+              className={`search-result ${selectedResultId === result.id ? 'selected' : ''}`}
+              key={result.id}
+              onClick={() => chooseResult(result)}
+            >
+              <span className="search-result-main">
+                <strong>{result.title}</strong>
+                {result.subtitle && <small>{result.subtitle}</small>}
+              </span>
+              <span className="search-result-side">
+                <em>{result.source}</em>
+                <small>{Number(result.lat).toFixed(5)}, {Number(result.lng).toFixed(5)}</small>
+              </span>
             </button>
           ))}
         </div>
@@ -292,7 +388,7 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
           <input value={longitude} onChange={(e) => setLongitude(e.target.value)} placeholder="11.077000" />
         </label>
       </div>
-      <div className="action-row">
+      <div className="action-row map-actions">
         <button type="button" className="secondary" onClick={useCurrentPosition}>Bruk min posisjon</button>
         <span className="map-hint">Dra markøren eller klikk i kartet for å finjustere punktet.</span>
       </div>
