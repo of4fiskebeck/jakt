@@ -118,6 +118,13 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
         });
 
         // Kartverket endret kartcache i 2025. Bruk cache.kartverket.no, ikke det gamle opencache.statkart.no.
+        topo.on('tileerror', () => {
+          if (!map.hasLayer(osm)) {
+            setMapError('Kartverket-kartet kunne ikke laste akkurat nå. Appen viser OpenStreetMap som fallback.');
+            osm.addTo(map);
+          }
+        });
+
         topo.addTo(map);
         L.control.layers({
           'Topografisk kart': topo,
@@ -238,6 +245,7 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
   return (
     <section className="card map-card">
       <h3>Kart og jaktsted</h3>
+      <div className="map-version">Kartlag: Kartverket topografisk · versjon 3</div>
       <p className="muted-text">Søk etter sted, bruk egen posisjon eller klikk i kartet for å sette nøyaktig jaktsted.</p>
 
       <form className="place-search" onSubmit={searchPlace}>
