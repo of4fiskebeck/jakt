@@ -12,51 +12,63 @@ function toCoordinate(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function unique(values) {
-  return [...new Set(values.map((v) => String(v).trim()).filter(Boolean))];
-}
-
-function cleanText(value) {
+function text(value) {
   if (value == null) return '';
   if (typeof value === 'string' || typeof value === 'number') return String(value).trim();
-  if (Array.isArray(value)) return unique(value.map(cleanText)).join(', ');
-  if (typeof value === 'object') {
-    const preferredKeys = [
-      'navnetekst',
-      'skrivemåte',
-      'skrivemate',
-      'stedsnavn',
-      'navn',
-      'kommunenavn',
-      'fylkesnavn',
-      'norsk',
-      'nor',
-      'nb',
-      'tekst',
-      'verdi',
-      'value'
-    ];
+  return '';
+}
 
-    for (const key of preferredKeys) {
-      const text = cleanText(value[key]);
-      if (text) return text;
+function cleanDisplay(value) {
+  return String(value || '')
+    .replace(/\[object Object\]/g, '')
+    .replace(/,+/g, ',')
+    .replace(/\s*,\s*/g, ', ')
+    .replace(/\s*·\s*/g, ' · ')
+    .replace(/\s+/g, ' ')
+    .replace(/^[-,·\s]+|[-,·\s]+$/g, '')
+    .trim();
+}
+
+function firstText(...values) {
+  for (const value of values) {
+    const direct = text(value);
+    if (direct) return cleanDisplay(direct);
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const fromArray = firstText(
+          item?.skrivemåte,
+          item?.skrivemate,
+          item?.navnetekst,
+          item?.stedsnavn,
+          item?.navn,
+          item?.tekst,
+          item?.value
+        );
+        if (fromArray) return fromArray;
+      }
     }
 
-    const firstReadable = Object.values(value)
-      .map(cleanText)
-      .find((text) => text && text !== '[object Object]');
-    return firstReadable || '';
+    if (value && typeof value === 'object') {
+      const fromObject = firstText(
+        value.skrivemåte,
+        value.skrivemate,
+        value.navnetekst,
+        value.stedsnavn,
+        value.navn,
+        value.tekst,
+        value.value,
+        value.kommunenavn,
+        value.fylkesnavn
+      );
+      if (fromObject) return fromObject;
+    }
   }
   return '';
 }
 
-function compactName(value) {
-  return String(value || '')
-    .replace(/\s+/g, ' ')
-    .replace(/\s*,\s*/g, ', ')
-    .replace(/\s*·\s*/g, ' · ')
-    .replace(/\[object Object\]/g, '')
-    .trim();
+function unique(values) {
+  return [...new Set(values.map(cleanDisplay).filter(Boolean))];
 }
 
 function getKartverketPoint(item) {
@@ -66,37 +78,40 @@ function getKartverketPoint(item) {
   return { lat: toCoordinate(lat), lng: toCoordinate(lng) };
 }
 
-function getNameFromNameArray(item) {
-  if (!Array.isArray(item.navn)) return '';
-  const preferred = item.navn.find((n) => n.språk === 'nor' || n.sprak === 'nor' || n.språk === 'nob' || n.sprak === 'nob') || item.navn[0];
-  return cleanText(preferred);
+function extractMunicipality(item) {
+  if (Array.isArray(item.kommuner)) {
+    return unique(item.kommuner.map((k) => firstText(k.kommunenavn, k.navn, k)));
+  }
+  return unique([firstText(item.kommune, item.kommunenavn)]);
+}
+
+function extractCounty(item) {
+  if (Array.isArray(item.fylker)) {
+    return unique(item.fylker.map((f) => firstText(f.fylkesnavn, f.navn, f)));
+  }
+  return unique([firstText(item.fylke, item.fylkesnavn)]);
 }
 
 function formatKartverketResult(item, fallback) {
   const point = getKartverketPoint(item);
-  const primary = compactName(
-    cleanText(item.skrivemåte) ||
-    cleanText(item.skrivemate) ||
-    getNameFromNameArray(item) ||
-    cleanText(item.stedsnavn) ||
-    cleanText(item.navn) ||
-    fallback
-  );
+  const title = cleanDisplay(firstText(
+    item.skrivemåte,
+    item.skrivemate,
+    item.stedsnavn,
+    item.navn,
+    item.navnetekst
+  )) || fallback;
 
-  const type = compactName(cleanText(item.navneobjekttype) || cleanText(item.objekttype) || cleanText(item.type));
-  const municipalities = Array.isArray(item.kommuner) ? unique(item.kommuner.map(cleanText)) : [cleanText(item.kommune)].filter(Boolean);
-  const counties = Array.isArray(item.fylker) ? unique(item.fylker.map(cleanText)) : [cleanText(item.fylke)].filter(Boolean);
-  const areaParts = unique([...municipalities, ...counties].map(compactName));
-  const subtitle = unique([type, ...areaParts].filter(Boolean)).join(' · ');
-
-  const title = primary || fallback;
-  const label = subtitle ? `${title}, ${subtitle}` : title;
+  const type = firstText(item.navneobjekttype, item.objekttype, item.type);
+  const municipalities = extractMunicipality(item);
+  const counties = extractCounty(item);
+  const subtitle = unique([type, ...municipalities, ...counties]).slice(0, 3).join(' · ');
 
   return {
-    id: String(item.stedsnummer || item.skrivemåteId || item.skrivemateId || `${label}-${point.lat}-${point.lng}`),
-    title,
-    subtitle,
-    label,
+    id: String(item.stedsnummer || item.skrivemåteId || item.skrivemateId || `${title}-${point.lat}-${point.lng}`),
+    title: cleanDisplay(title) || fallback,
+    subtitle: cleanDisplay(subtitle),
+    label: cleanDisplay([title, ...municipalities, ...counties].filter(Boolean).join(', ')) || fallback,
     lat: point.lat,
     lng: point.lng,
     source: 'Kartverket'
@@ -104,7 +119,7 @@ function formatKartverketResult(item, fallback) {
 }
 
 function formatOsmResult(item) {
-  const full = compactName(item.display_name);
+  const full = cleanDisplay(item.display_name);
   const parts = full.split(',').map((part) => part.trim()).filter(Boolean);
   const title = parts[0] || 'Ukjent sted';
   const subtitle = parts.slice(1, 4).join(' · ');
@@ -115,14 +130,16 @@ function formatOsmResult(item) {
     label: full,
     lat: toCoordinate(item.lat),
     lng: toCoordinate(item.lon),
-    source: 'OpenStreetMap'
+    source: 'Søk'
   };
 }
 
 function dedupeResults(results) {
   const seen = new Set();
   return results.filter((result) => {
-    const key = `${result.title.toLowerCase()}-${Number(result.lat).toFixed(4)}-${Number(result.lng).toFixed(4)}`;
+    if (!result.lat || !result.lng || !result.title) return false;
+    if (String(result.title).includes('[object Object]')) return false;
+    const key = `${result.title.toLowerCase()}-${Number(result.lat).toFixed(3)}-${Number(result.lng).toFixed(3)}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -212,13 +229,13 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
         topo.addTo(map);
         L.control.layers(
           {
-            'Kartverket topografisk': topo,
-            'Kartverket gråtone': grey,
-            'Kartverket turkart': raster,
+            'Topografisk': topo,
+            'Gråtone': grey,
+            'Turkart': raster,
             'OpenStreetMap': osm
           },
           undefined,
-          { collapsed: false, position: 'topright' }
+          { collapsed: true, position: 'topright' }
         ).addTo(map);
 
         map.on('click', (event) => {
@@ -270,9 +287,26 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
     );
   }
 
+  async function searchOsm(textValue) {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=4&countrycodes=no&q=${encodeURIComponent(textValue)}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('OpenStreetMap-søk feilet');
+    const json = await response.json();
+    return dedupeResults(json.map(formatOsmResult)).slice(0, 4);
+  }
+
+  async function searchKartverket(textValue) {
+    const url = `https://ws.geonorge.no/stedsnavn/v1/sted?sok=${encodeURIComponent(textValue)}&fuzzy=true&treffPerSide=6`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Kartverket-søk feilet');
+    const json = await response.json();
+    const items = Array.isArray(json.navn) ? json.navn : Array.isArray(json.steder) ? json.steder : [];
+    return dedupeResults(items.map((item) => formatKartverketResult(item, textValue))).slice(0, 4);
+  }
+
   async function searchPlace() {
-    const text = searchText.trim();
-    if (!text || searching) return;
+    const query = searchText.trim();
+    if (!query || searching) return;
 
     setSearching(true);
     setResults([]);
@@ -280,30 +314,13 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
     setSelectedResultId('');
 
     try {
-      const url = `https://ws.geonorge.no/stedsnavn/v1/sted?sok=${encodeURIComponent(text)}&fuzzy=true&treffPerSide=10`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Kartverket-søk feilet');
-      const json = await response.json();
-      const items = Array.isArray(json.navn) ? json.navn : Array.isArray(json.steder) ? json.steder : [];
-      const mapped = dedupeResults(
-        items
-          .map((item) => formatKartverketResult(item, text))
-          .filter((item) => item.lat && item.lng && item.title && !item.title.includes('[object Object]'))
-      ).slice(0, 5);
-
-      if (mapped.length) {
-        setResults(mapped);
-        return;
-      }
-
-      throw new Error('Fant ingen Kartverket-treff');
-    } catch (error) {
+      let mapped = await searchOsm(query);
+      if (!mapped.length) mapped = await searchKartverket(query);
+      setResults(mapped);
+      if (!mapped.length) setSearchError('Fant ingen steder. Prøv et mer presist stedsnavn.');
+    } catch {
       try {
-        const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=no&q=${encodeURIComponent(text)}`;
-        const response = await fetch(fallbackUrl);
-        if (!response.ok) throw new Error('OpenStreetMap-søk feilet');
-        const json = await response.json();
-        const mapped = json.map(formatOsmResult).filter((item) => item.lat && item.lng).slice(0, 5);
+        const mapped = await searchKartverket(query);
         setResults(mapped);
         if (!mapped.length) setSearchError('Fant ingen steder. Prøv et mer presist stedsnavn.');
       } catch {
@@ -327,10 +344,10 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
           <h3>Kart og jaktsted</h3>
           <p className="muted-text">Søk etter sted, bruk egen posisjon eller klikk i kartet for å sette nøyaktig jaktsted.</p>
         </div>
-        <span className="map-version">Kartverket topografisk</span>
+        <span className="map-version">Kartverket topo · søk v6</span>
       </div>
 
-      <div className="place-search">
+      <div className="map-search-v6">
         <label>
           Søk etter sted
           <input
@@ -345,30 +362,28 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
             placeholder="Søk: Karasjok, Rendalen, Femundsmarka ..."
           />
         </label>
-        <button type="button" className="search-button" disabled={searching} onClick={searchPlace}>
-          {searching ? 'Søker…' : 'Søk sted'}
+        <button type="button" className="map-search-button-v6" disabled={searching} onClick={searchPlace}>
+          {searching ? 'Søker…' : 'Søk'}
         </button>
       </div>
 
       {searchError && <div className="notice error">{searchError}</div>}
       {results.length > 0 && (
-        <div className="search-results" aria-label="Søkeresultater">
-          <div className="search-results-title">Velg riktig treff</div>
+        <div className="map-results-v6" aria-label="Søkeresultater">
+          <div className="map-results-heading-v6">Velg sted</div>
           {results.map((result) => (
             <button
               type="button"
-              className={`search-result ${selectedResultId === result.id ? 'selected' : ''}`}
+              className={`map-result-v6 ${selectedResultId === result.id ? 'selected' : ''}`}
               key={result.id}
               onClick={() => chooseResult(result)}
             >
-              <span className="search-result-main">
-                <strong>{result.title}</strong>
-                {result.subtitle && <small>{result.subtitle}</small>}
+              <span className="map-result-pin-v6">⌖</span>
+              <span className="map-result-text-v6">
+                <strong>{cleanDisplay(result.title)}</strong>
+                {result.subtitle && <small>{cleanDisplay(result.subtitle)}</small>}
               </span>
-              <span className="search-result-side">
-                <em>{result.source}</em>
-                <small>{Number(result.lat).toFixed(5)}, {Number(result.lng).toFixed(5)}</small>
-              </span>
+              <span className="map-result-action-v6">Velg</span>
             </button>
           ))}
         </div>
