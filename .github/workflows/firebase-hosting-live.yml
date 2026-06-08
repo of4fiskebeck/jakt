@@ -12,6 +12,7 @@ jobs:
 
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
 
     steps:
       - name: Checkout repository
@@ -53,7 +54,11 @@ jobs:
 
       - name: Create Firebase service account file
         run: |
-          printf '%s' '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > "$HOME/firebase-service-account.json"
+          cat > "${{ runner.temp }}/firebase-service-account.json" <<'EOF'
+          ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          EOF
+          echo "Service account file created:"
+          ls -la "${{ runner.temp }}/firebase-service-account.json"
 
       - name: Check Firebase config files
         run: |
@@ -69,5 +74,3 @@ jobs:
           npx --yes firebase-tools@latest deploy \
             --only hosting,firestore:rules,storage \
             --project "${{ secrets.FIREBASE_PROJECT_ID }}"
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: $HOME/firebase-service-account.json
