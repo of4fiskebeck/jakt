@@ -1,0 +1,19 @@
+Jegerapp - fungerende deploypakke
+
+Denne ZIP-en er laget for at GitHub Actions skal bygge og publisere appen uten å stoppe på Firebase Storage API-rettigheter.
+
+Viktig:
+- Workflow deployer Hosting og Firestore rules.
+- Workflow deployer IKKE Storage rules, fordi service account-en din fikk 403 på firebasestorage.googleapis.com.
+- storage.rules ligger likevel med i prosjektet.
+
+Hvis bildeopplasting ikke virker etter deploy:
+1. Gå til Firebase Console.
+2. Åpne Storage.
+3. Gå til Rules.
+4. Lim inn innholdet fra storage.rules.
+5. Trykk Publish.
+
+Alternativt kan du gi service account-en rollen Service Usage Admin i Google Cloud IAM, og deretter endre workflow til å deploye storage også.
+
+Denne pakken fjerner også package-lock.json fra ZIP-en. Workflow sletter eventuell gammel package-lock.json i runneren og installerer dependencies rent med npm install.
