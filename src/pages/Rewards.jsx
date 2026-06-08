@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import RewardBadge from '../components/RewardBadge';
+import PageHeading from '../components/PageHeading';
+import { appIcons } from '../icons';
 
 export default function Rewards({ user }) {
   const [huntCount, setHuntCount] = useState(0);
@@ -34,9 +36,9 @@ export default function Rewards({ user }) {
 
   return (
     <div>
-      <h1>Rewards</h1>
+      <PageHeading icon={appIcons.rewards} eyebrow="Rewards" title="Belønninger">Følg fremdrift, jakter, bilder, jegervenner og felte dyr.</PageHeading>
       <div className="grid three">
-        {rewards.map((reward) => <RewardBadge key={reward.title} {...reward} />)}
+        {rewards.map((reward) => <RewardBadge key={reward.title} icon={appIcons.rewards} {...reward} />)}
       </div>
     </div>
   );

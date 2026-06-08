@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { addDoc, collection, deleteDoc, doc, onSnapshot, query, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import PageHeading from '../components/PageHeading';
+import { appIcons } from '../icons';
 
 const initialWeapon = { name: '', caliber: '', type: 'Rifle', optics: '', notes: '' };
 
@@ -91,15 +93,11 @@ export default function Weapons({ user }) {
 
   return (
     <div>
-      <div className="page-heading">
-        <p className="eyebrow">Jaktgarderobe</p>
-        <h1>Våpen og utstyr</h1>
-        <p>Registrer våpen, kaliber, sikter og egne notater. Våpen kan deretter velges når du lager en ny jakt.</p>
-      </div>
+      <PageHeading icon={appIcons.weapons} eyebrow="Jaktgarderobe" title="Våpen og utstyr">Registrer våpen, kaliber, sikter og egne notater. Våpen kan deretter velges når du lager en ny jakt.</PageHeading>
 
       <form className="card weapon-form" onSubmit={addWeapon}>
         <div className="section-title">
-          <span>🪵</span>
+          <span><img src={appIcons.weapons} alt="" /></span>
           <div>
             <h2>Legg til våpen</h2>
             <p>Alt lagres i din egen Firestore-brukerprofil.</p>

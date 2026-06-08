@@ -683,3 +683,187 @@ textarea { resize: vertical; min-height: 110px; }
   .map-card-header { flex-direction: column; }
   .map-result-v6 { grid-template-columns: 1fr; }
 }
+
+/* Premium Jegerapp icon system */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.brand::before { content: none; }
+.brand > img {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  object-fit: cover;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.34), 0 0 0 1px rgba(225,177,94,0.34);
+}
+.nav-icon-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.nav-icon-button img {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.24), 0 0 0 1px rgba(225,177,94,0.24);
+  flex: 0 0 auto;
+}
+.navbar nav button.active img,
+.navbar nav button:hover img {
+  box-shadow: 0 10px 24px rgba(225,177,94,0.20), 0 0 0 1px rgba(225,177,94,0.52);
+}
+.login-card-branded {
+  position: relative;
+  overflow: hidden;
+}
+.login-card-branded::before {
+  content: "";
+  position: absolute;
+  inset: -45%;
+  background: radial-gradient(circle at 50% 0%, rgba(225,177,94,0.12), transparent 28rem);
+  pointer-events: none;
+}
+.login-card-branded > * { position: relative; z-index: 1; }
+.login-app-icon {
+  width: min(210px, 62vw);
+  height: min(210px, 62vw);
+  display: block;
+  margin: 0 auto 1.25rem;
+  border-radius: 42px;
+  object-fit: cover;
+  box-shadow: 0 28px 80px rgba(0,0,0,0.42), 0 0 0 1px rgba(225,177,94,0.34);
+}
+.hero-with-icon {
+  justify-content: flex-start;
+}
+.hero-app-icon {
+  width: clamp(104px, 15vw, 170px);
+  height: clamp(104px, 15vw, 170px);
+  border-radius: 32px;
+  object-fit: cover;
+  flex: 0 0 auto;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.40), 0 0 0 1px rgba(225,177,94,0.36);
+}
+.icon-badge {
+  object-fit: cover;
+  box-shadow: 0 18px 48px rgba(0,0,0,0.34), 0 0 0 1px rgba(225,177,94,0.28);
+  flex: 0 0 auto;
+}
+.icon-badge-page {
+  width: clamp(82px, 10vw, 118px);
+  height: clamp(82px, 10vw, 118px);
+  border-radius: 28px;
+}
+.page-heading.with-icon {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  max-width: 980px;
+}
+.page-heading.with-icon h1 { margin-top: 0; }
+.icon-stat {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 0.9rem;
+}
+.icon-stat img {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  object-fit: cover;
+  grid-row: span 2;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.34), 0 0 0 1px rgba(225,177,94,0.26);
+}
+.icon-stat span { line-height: 1; }
+.button-with-mini-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.button-with-mini-icon img {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.22);
+}
+.section-title.compact {
+  align-items: center;
+}
+.section-title.compact span {
+  overflow: hidden;
+  padding: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: transparent;
+}
+.section-title.compact span img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.weapon-form .section-title span {
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  padding: 0;
+  background: transparent;
+}
+.weapon-form .section-title span img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.30), 0 0 0 1px rgba(225,177,94,0.26);
+}
+.reward-image {
+  width: 78px;
+  height: 78px;
+  border-radius: 22px;
+  object-fit: cover;
+  display: block;
+  margin-bottom: 0.9rem;
+  box-shadow: 0 16px 34px rgba(0,0,0,0.32), 0 0 0 1px rgba(225,177,94,0.28);
+}
+.profile-card-branded {
+  position: relative;
+  overflow: hidden;
+}
+.profile-app-icon {
+  width: 118px;
+  height: 118px;
+  border-radius: 30px;
+  object-fit: cover;
+  float: right;
+  margin: 0 0 1rem 1rem;
+  box-shadow: 0 22px 52px rgba(0,0,0,0.34), 0 0 0 1px rgba(225,177,94,0.28);
+}
+.map-title-icon { margin-bottom: 0; }
+.friends-grid .friend-card,
+.harvest-card,
+.hunt-card,
+.weapon-card {
+  position: relative;
+}
+@media (max-width: 850px) {
+  .navbar nav { width: 100%; }
+  .nav-icon-button img { width: 28px; height: 28px; }
+  .page-heading.with-icon { align-items: flex-start; }
+  .hero-with-icon { align-items: center; }
+  .hero-app-icon { width: 120px; height: 120px; border-radius: 28px; }
+  .icon-stat { grid-template-columns: auto 1fr; }
+}
+@media (max-width: 560px) {
+  .page-heading.with-icon { flex-direction: column; }
+  .icon-badge-page { width: 96px; height: 96px; border-radius: 24px; }
+  .nav-icon-button span { display: inline; }
+  .profile-app-icon { float: none; display: block; margin: 1rem 0; }
+}
+.grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1000px) { .grid.four { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .grid.four { grid-template-columns: 1fr; } }

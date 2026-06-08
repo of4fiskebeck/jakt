@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { addDoc, collection, onSnapshot, query, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import MapPicker from '../components/MapPicker';
+import PageHeading from '../components/PageHeading';
+import { appIcons } from '../icons';
 import ImageUpload from '../components/ImageUpload';
 
 const huntTypes = ['Elgjakt', 'Hjortejakt', 'Rådyrjakt', 'Småviltjakt', 'Fuglejakt', 'Revjakt', 'Annet'];
@@ -135,11 +137,7 @@ export default function NewHunt({ user, setPage }) {
 
   return (
     <form onSubmit={saveHunt}>
-      <div className="page-heading">
-        <p className="eyebrow">Ny jakt</p>
-        <h1>Registrer jakt</h1>
-        <p>Loggfør sted, tid, bilder, dagbok og eventuelle felte dyr.</p>
-      </div>
+      <PageHeading icon={appIcons.newHunt} eyebrow="Ny jakt" title="Registrer jakt">Loggfør sted, tid, bilder, dagbok og eventuelle felte dyr.</PageHeading>
       {error && <p className="notice error">{error}</p>}
       <section className="card">
         <div className="grid two">

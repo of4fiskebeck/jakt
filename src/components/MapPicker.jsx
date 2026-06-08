@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { appIcons } from '../icons';
 
 const NORWAY_CENTER = [63.4, 10.4];
 const DEFAULT_ZOOM = 5;
@@ -340,9 +341,12 @@ export default function MapPicker({ latitude, longitude, setLatitude, setLongitu
   return (
     <section className="card map-card">
       <div className="map-card-header">
-        <div>
-          <h3>Kart og jaktsted</h3>
-          <p className="muted-text">Søk etter sted, bruk egen posisjon eller klikk i kartet for å sette nøyaktig jaktsted.</p>
+        <div className="section-title compact map-title-icon">
+          <span><img src={appIcons.map} alt="" /></span>
+          <div>
+            <h3>Kart og jaktsted</h3>
+            <p className="muted-text">Søk etter sted, bruk egen posisjon eller klikk i kartet for å sette nøyaktig jaktsted.</p>
+          </div>
         </div>
         <span className="map-version">Kartverket topo · søk v6</span>
       </div>

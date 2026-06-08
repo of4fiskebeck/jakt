@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { signInWithPopup, signInWithRedirect } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
+import { appIcons } from '../icons';
 
 export default function Login() {
   const [error, setError] = useState('');
@@ -21,8 +22,8 @@ export default function Login() {
 
   return (
     <div className="login-page">
-      <div className="login-card">
-        <div className="logo-mark">🦌</div>
+      <div className="login-card login-card-branded">
+        <img className="login-app-icon" src={appIcons.main} alt="Jegerapp" />
         <h1>Jegerapp</h1>
         <p>Logg inn for å registrere jakter, våpen, bilder, felt vilt, dagbok, jegervenner og rewards.</p>
         {error && <p className="notice error">{error}</p>}

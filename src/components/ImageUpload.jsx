@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase';
+import { appIcons } from '../icons';
 
 function safeFileName(name) {
   return String(name || 'bilde.jpg').replace(/[^a-zA-Z0-9._-]/g, '-');
@@ -41,7 +42,7 @@ export default function ImageUpload({ userId, huntId, imageUrls = [], setImageUr
 
   return (
     <section className="card image-upload-card">
-      <h3>{title}</h3>
+      <div className="section-title compact"><span><img src={appIcons.photos} alt="" /></span><div><h3>{title}</h3><p>Bildeopplasting</p></div></div>
       <p className="muted-text">Last opp ett eller flere bilder. Bildene lagres i Firebase Storage og knyttes til din bruker.</p>
       <input type="file" accept="image/*" multiple onChange={handleUpload} disabled={uploading} />
       {uploading && <p className="notice success">Laster opp bilder...</p>}

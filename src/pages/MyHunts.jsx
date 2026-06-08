@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query } from 'firebase/firestore';
 import { db } from '../firebase';
+import PageHeading from '../components/PageHeading';
+import { appIcons } from '../icons';
 
 export default function MyHunts({ user, openHunt }) {
   const [hunts, setHunts] = useState([]);
@@ -16,11 +18,7 @@ export default function MyHunts({ user, openHunt }) {
 
   return (
     <div>
-      <div className="page-heading">
-        <p className="eyebrow">Mine jakter</p>
-        <h1>Jaktloggen</h1>
-        <p>Åpne en jakt for å se bilder, kart, dagbok, tid og felte dyr.</p>
-      </div>
+      <PageHeading icon={appIcons.myHunts} eyebrow="Mine jakter" title="Jaktloggen">Åpne en jakt for å se bilder, kart, dagbok, tid og felte dyr.</PageHeading>
       {!hunts.length && <div className="card"><p>Du har ikke registrert noen jakter ennå.</p></div>}
       <div className="grid two">
         {hunts.map((hunt) => (

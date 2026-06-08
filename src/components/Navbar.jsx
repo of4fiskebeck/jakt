@@ -1,29 +1,23 @@
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-
-const navItems = [
-  { id: 'dashboard', label: 'Dashboard' },
-  { id: 'newHunt', label: 'Ny jakt' },
-  { id: 'myHunts', label: 'Mine jakter' },
-  { id: 'harvests', label: 'Felte dyr' },
-  { id: 'friends', label: 'Jegervenner' },
-  { id: 'weapons', label: 'Jaktgarderobe' },
-  { id: 'rewards', label: 'Rewards' },
-  { id: 'profile', label: 'Profil' }
-];
+import { appIcons, navItems } from '../icons';
 
 export default function Navbar({ user, page, setPage }) {
   return (
     <header className="navbar">
-      <div className="brand" onClick={() => setPage('dashboard')}>Jegerapp</div>
+      <div className="brand" onClick={() => setPage('dashboard')}>
+        <img src={appIcons.main} alt="Jegerapp" />
+        <span>Jegerapp</span>
+      </div>
       <nav>
         {navItems.map((item) => (
           <button
             key={item.id}
-            className={page === item.id ? 'active' : ''}
+            className={page === item.id ? 'active nav-icon-button' : 'nav-icon-button'}
             onClick={() => setPage(item.id)}
           >
-            {item.label}
+            <img src={item.icon} alt="" />
+            <span>{item.label}</span>
           </button>
         ))}
       </nav>

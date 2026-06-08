@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { collection, doc, getDocs, onSnapshot, query, serverTimestamp, setDoc, where, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import PageHeading from '../components/PageHeading';
+import { appIcons } from '../icons';
 
 export default function Friends({ user }) {
   const [email, setEmail] = useState('');
@@ -96,11 +98,7 @@ export default function Friends({ user }) {
 
   return (
     <div>
-      <div className="page-heading">
-        <p className="eyebrow">Jegervenner</p>
-        <h1>Venner og delte felt dyr</h1>
-        <p>Legg til jegervenner med e-post. Venner kan se felte dyr du har markert som synlige for jegervenner.</p>
-      </div>
+      <PageHeading icon={appIcons.friends} eyebrow="Jegervenner" title="Venner og delte felt dyr">Legg til jegervenner med e-post. Venner kan se felte dyr du har markert som synlige for jegervenner.</PageHeading>
       {message && <p className="notice success">{message}</p>}
       <section className="card">
         <h3>Legg til jegervenn</h3>

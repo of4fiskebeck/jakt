@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { addDoc, collection, onSnapshot, query, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
+import PageHeading from '../components/PageHeading';
+import { appIcons } from '../icons';
 
 export default function Harvests({ user }) {
   const [harvests, setHarvests] = useState([]);
@@ -38,11 +40,7 @@ export default function Harvests({ user }) {
 
   return (
     <div>
-      <div className="page-heading">
-        <p className="eyebrow">Felte dyr</p>
-        <h1>Dyr skutt</h1>
-        <p>Oversikt over registrert felt vilt, bilder, vekt og kommentarer.</p>
-      </div>
+      <PageHeading icon={appIcons.harvests} eyebrow="Felte dyr" title="Dyr skutt">Oversikt over registrert felt vilt, bilder, vekt og kommentarer.</PageHeading>
       {!harvests.length && <div className="card"><p>Ingen felte dyr registrert ennå. Legg til felt dyr når du registrerer en ny jakt.</p></div>}
       <div className="grid two">
         {harvests.map((harvest) => (
