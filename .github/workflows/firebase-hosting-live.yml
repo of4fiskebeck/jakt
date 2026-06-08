@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: 24
 
-      - name: Show files
+      - name: Show project files
         run: |
           echo "Current folder:"
           pwd
@@ -31,8 +31,14 @@ jobs:
           echo "package.json:"
           cat package.json
 
+      - name: Clean old npm lock and cache
+        run: |
+          rm -f package-lock.json
+          rm -rf node_modules
+          npm cache clean --force
+
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund --package-lock=false
 
       - name: Build app
         run: npm run build
