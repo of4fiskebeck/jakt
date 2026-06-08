@@ -37,3 +37,15 @@ Disse må ligge under Settings → Secrets and variables → Actions:
 - Kommentarer på egne felte dyr og felte dyr delt av venner.
 - Delingsnivå: privat eller synlig for jegervenner.
 - Kartverket topografisk kart og forbedret stedsøk.
+
+## Ikonoppdatering
+
+Denne versjonen har integrerte premium-ikoner i grønn/gull-stil:
+
+- hovedikon for Jegerapp
+- favicon og PWA/webapp-ikoner
+- ikon på innloggingssiden
+- ikon i toppmenyen
+- ikon på hovedsider, dashboardkort, bildeopplasting og kartmodul
+
+Ikonfilene ligger i `public/icons/`, mens app-/favicon-filene ligger i `public/`.

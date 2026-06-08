@@ -1,0 +1,5 @@
+Jegerapp ikonpakke v1
+- Hovedikon integrert som favicon, PWA-ikon og login-ikon
+- Figurative interne ikoner i samme grønn/gull-stil
+- Navbar, dashboard, page headings, rewards, bildeopplasting og kartmodul oppdatert
+- Build-test kjørt: npm install && npm run build OK
