@@ -5,6 +5,8 @@ const navItems = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'newHunt', label: 'Ny jakt' },
   { id: 'myHunts', label: 'Mine jakter' },
+  { id: 'harvests', label: 'Felte dyr' },
+  { id: 'friends', label: 'Jegervenner' },
   { id: 'weapons', label: 'Jaktgarderobe' },
   { id: 'rewards', label: 'Rewards' },
   { id: 'profile', label: 'Profil' }
@@ -13,7 +15,7 @@ const navItems = [
 export default function Navbar({ user, page, setPage }) {
   return (
     <header className="navbar">
-      <div className="brand" onClick={() => setPage('dashboard')}>JaktApp</div>
+      <div className="brand" onClick={() => setPage('dashboard')}>Jegerapp</div>
       <nav>
         {navItems.map((item) => (
           <button

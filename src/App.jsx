@@ -10,6 +10,8 @@ import MyHunts from './pages/MyHunts';
 import HuntDetail from './pages/HuntDetail';
 import Weapons from './pages/Weapons';
 import Rewards from './pages/Rewards';
+import Harvests from './pages/Harvests';
+import Friends from './pages/Friends';
 import Navbar from './components/Navbar';
 
 export default function App() {
@@ -23,17 +25,16 @@ export default function App() {
       setUser(firebaseUser);
       setLoading(false);
       if (firebaseUser) {
-        await setDoc(
-          doc(db, 'users', firebaseUser.uid),
-          {
-            name: firebaseUser.displayName || '',
-            email: firebaseUser.email || '',
-            photoURL: firebaseUser.photoURL || '',
-            updatedAt: serverTimestamp(),
-            createdAt: serverTimestamp()
-          },
-          { merge: true }
-        );
+        const profile = {
+          name: firebaseUser.displayName || '',
+          email: firebaseUser.email || '',
+          emailLower: (firebaseUser.email || '').toLowerCase(),
+          photoURL: firebaseUser.photoURL || '',
+          updatedAt: serverTimestamp(),
+          createdAt: serverTimestamp()
+        };
+        await setDoc(doc(db, 'users', firebaseUser.uid), profile, { merge: true });
+        await setDoc(doc(db, 'publicProfiles', firebaseUser.uid), profile, { merge: true });
       }
     });
     return unsubscribe;
@@ -57,6 +58,8 @@ export default function App() {
         {page === 'myHunts' && <MyHunts user={user} openHunt={openHunt} />}
         {page === 'huntDetail' && <HuntDetail user={user} huntId={selectedHuntId} setPage={setPage} />}
         {page === 'weapons' && <Weapons user={user} />}
+        {page === 'harvests' && <Harvests user={user} />}
+        {page === 'friends' && <Friends user={user} />}
         {page === 'rewards' && <Rewards user={user} />}
       </main>
     </div>

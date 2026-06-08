@@ -1,11 +1,64 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isOwner(userId) { return signedIn() && request.auth.uid == userId; }
+    function isFriend(userId) {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(userId)/friends/$(request.auth.uid));
+    }
+
+    match /publicProfiles/{userId} {
+      allow read: if signedIn();
+      allow create, update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
+
+      match /friends/{friendId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) || (signedIn() && request.auth.uid == friendId);
+        allow update, delete: if isOwner(userId);
+      }
+
+      match /friendRequests/{requestId} {
+        allow read, update, delete: if isOwner(userId);
+        allow create: if signedIn() && request.auth.uid == requestId;
+      }
+
+      match /sentFriendRequests/{targetId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /hunts/{huntId} {
+        allow read: if isOwner(userId) || (resource.data.visibility == 'friends' && isFriend(userId));
+        allow write: if isOwner(userId);
+      }
+
+      match /harvests/{harvestId} {
+        allow read: if isOwner(userId) || (resource.data.visibility == 'friends' && isFriend(userId));
+        allow write: if isOwner(userId);
+
+        match /comments/{commentId} {
+          allow read: if isOwner(userId) || isFriend(userId);
+          allow create: if signedIn()
+            && (isOwner(userId) || isFriend(userId))
+            && request.resource.data.authorUid == request.auth.uid;
+          allow update, delete: if signedIn() && request.auth.uid == resource.data.authorUid;
+        }
+      }
+
+      match /weapons/{weaponId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /rewards/{rewardId} {
+        allow read, write: if isOwner(userId);
+      }
 
       match /{document=**} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isOwner(userId);
       }
     }
   }
