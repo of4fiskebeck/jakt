@@ -9,22 +9,25 @@ export default function Navbar({ user, page, setPage }) {
         <img src={appIcons.main} alt="Jegerapp" />
         <span>Jegerapp</span>
       </div>
+
       <nav>
         {navItems.map((item) => (
           <button
             key={item.id}
-            className={page === item.id ? 'active nav-icon-button' : 'nav-icon-button'}
+            className={page === item.id ? 'active' : ''}
             onClick={() => setPage(item.id)}
           >
-            <img src={item.icon} alt="" />
             <span>{item.label}</span>
           </button>
         ))}
       </nav>
+
       <div className="user-chip">
         {user.photoURL && <img src={user.photoURL} alt="Profil" />}
         <span>{user.displayName}</span>
-        <button className="secondary" onClick={() => signOut(auth)}>Logg ut</button>
+        <button className="secondary" onClick={() => signOut(auth)}>
+          Logg ut
+        </button>
       </div>
     </header>
   );
