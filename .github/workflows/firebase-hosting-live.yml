@@ -64,11 +64,9 @@ jobs:
           cat firebase.json
           echo "firestore.rules:"
           cat firestore.rules
-          echo "storage.rules:"
-          cat storage.rules
 
-      - name: Deploy to Firebase Hosting and rules
+      - name: Deploy to Firebase Hosting and Firestore rules
         run: |
           npx --yes firebase-tools@latest deploy \
-            --only hosting,firestore:rules,storage \
+            --only hosting,firestore:rules \
             --project "${{ secrets.FIREBASE_PROJECT_ID }}"
