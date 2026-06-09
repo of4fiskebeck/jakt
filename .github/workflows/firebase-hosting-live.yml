@@ -23,15 +23,6 @@ jobs:
         with:
           node-version: 24
 
-      - name: Show project files
-        run: |
-          echo "Current folder:"
-          pwd
-          echo "Files:"
-          ls -la
-          echo "package.json:"
-          cat package.json
-
       - name: Clean old npm lock and cache
         run: |
           rm -f package-lock.json
@@ -55,18 +46,9 @@ jobs:
       - name: Create Firebase service account file
         run: |
           printf '%s' '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > /tmp/firebase-service-account.json
-          echo "Service account file created"
-          ls -la /tmp/firebase-service-account.json
 
-      - name: Check Firebase config files
-        run: |
-          echo "firebase.json:"
-          cat firebase.json
-          echo "firestore.rules:"
-          cat firestore.rules
-
-      - name: Deploy to Firebase Hosting and Firestore rules
+      - name: Deploy Hosting only
         run: |
           npx --yes firebase-tools@latest deploy \
-            --only hosting,firestore:rules \
+            --only hosting \
             --project "${{ secrets.FIREBASE_PROJECT_ID }}"
